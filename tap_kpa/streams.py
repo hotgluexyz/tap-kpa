@@ -5,7 +5,8 @@ from backports.cached_property import cached_property
 from singer_sdk import typing as th
 
 from tap_kpa.client import KpaStream
-
+from datetime import datetime
+import pytz
 
 class FormsResponseListStream(KpaStream):
     """Define custom stream."""
@@ -88,6 +89,8 @@ class FormsResponseDateStream(KpaStream):
                     and value["values"]
                 ):
                     processed_row[field_name] = value["values"][0]
+                elif value.get("utc_time"):
+                    processed_row[field_name] = datetime.fromtimestamp(value["utc_time"] / 1000.0, tz=pytz.utc)
                 else:
                     first_key = next(iter(value))
                     processed_row[field_name] = value[first_key]
