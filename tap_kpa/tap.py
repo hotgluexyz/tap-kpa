@@ -2,6 +2,8 @@
 
 from typing import List
 
+import traceback
+import re
 import requests
 from singer_sdk import Stream, Tap
 from singer_sdk import typing as th
@@ -40,7 +42,11 @@ class TapKpa(Tap):
             forms = forms.json().get("forms", [])
             for form in forms:
                 form_id = form.get("id")
+                # Clean up form name, no spaces or non alphanumeric chars
                 name = form.get("name").replace(" ", "_")
+                pattern = re.compile('[^\w]+')
+                name = pattern.sub('', name)
+
                 # create parent stream
                 parent_stream_name = f"{name}_responses_list"
                 parent_stream = type(
@@ -54,7 +60,6 @@ class TapKpa(Tap):
                 yield parent_stream(tap=self)
 
                 # create forms stream
-                name = f"{name}_responses_data"
                 yield type(
                     name,
                     (FormsResponseDateStream,),
@@ -68,6 +73,35 @@ class TapKpa(Tap):
             raise Exception(
                 f"Request to get forms has failed with status code {forms.status_code} and response {forms.text}"
             )
+
+    @property
+    def catalog(self):
+        """Get the tap's working catalog.
+
+        Returns:
+            A Singer catalog object.
+        """
+        if self._catalog is None:
+            self._catalog = self._singer_catalog
+
+        return self._catalog
+
+    @property
+    def catalog_dict(self) -> dict:
+        """Get catalog dictionary.
+        Returns:
+            The tap's catalog as a dict
+        """
+        catalog = super().catalog_dict
+        trace_stack = traceback.format_stack()
+        is_discover = "run_discovery" in str(trace_stack)
+        if is_discover:
+            # filter out all the parent streams, we want to hide from end user
+            catalog = {
+                "streams": [x for x in catalog["streams"] if not x["stream"].endswith("_responses_list")]
+            }
+
+        return catalog
 
 
 if __name__ == "__main__":

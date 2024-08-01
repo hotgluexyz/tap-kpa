@@ -34,8 +34,10 @@ class KpaStream(RESTStream):
             response.status_code == 200
             and response.json().get("error") == "rate_limit_exceeded"
         ):
-            self.logger.info("Rate limit exceeded, sleeping for 60 seconds...")
+            self.logger.info("Rate limit exceeded, sleeping for 120 seconds...")
             sleep(120)
+            raise RetriableAPIError(error, response)
+
         if (
             response.status_code in self.extra_retry_statuses
             or 500 <= response.status_code < 600
