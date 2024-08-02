@@ -48,8 +48,7 @@ class FormsResponseDateStream(KpaStream):
         url = f"{self.url_base}/forms.info"
         data = super().prepare_request_payload({}, None)
         data.update({"form_id": self.form_id})
-        fields = requests.post(url, json=data)
-        self.validate_response(fields)
+        fields = self.make_request("POST", url, json=data)
         if fields.status_code == 200 and fields.json().get("ok"):
             fields = fields.json().get("form", {}).get("latest", {}).get("fields", [])
             return fields

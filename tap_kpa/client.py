@@ -3,6 +3,7 @@
 from time import sleep
 from typing import Any, Dict, Optional
 
+import backoff
 import requests
 from pendulum import parse
 from singer_sdk import typing as th
@@ -107,3 +108,15 @@ class KpaStream(RESTStream):
         # Return the list as a JSON Schema dictionary object
         property_list = th.PropertiesList(*properties).to_dict()
         return property_list
+    
+    @backoff.on_exception(
+        backoff.expo,
+        (RetriableAPIError),
+        max_tries=5,
+        factor=2,
+    )
+    def make_request(self, http_method, url, json):
+        request = requests.request(http_method, url, json=json)
+        self.validate_response(request)
+        return request
+
