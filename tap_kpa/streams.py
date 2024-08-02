@@ -89,6 +89,8 @@ class FormsResponseDateStream(KpaStream):
                     and value["values"]
                 ):
                     processed_row[field_name] = value["values"][0]
+                elif value.get("attachments"):
+                    processed_row[field_name] = value["attachments"]
                 elif value.get("utc_time"):
                     processed_row[field_name] = datetime.fromtimestamp(value["utc_time"] / 1000.0, tz=pytz.utc)
                 else:
