@@ -87,7 +87,10 @@ class KpaStream(RESTStream):
 
     def get_jsonschema_type(self, field):
         settings = field.get("settings", {})
-        if settings.get("inputtype") == "checkbox":
+        if settings.get("inputtype") == "checkbox" or (
+            settings.get("inputtype") == "switch"
+            and isinstance(settings.get("defaulted"), bool)
+        ):
             return th.BooleanType
         if settings.get("style") == "list" and settings.get("multiple"):
             return th.ArrayType(th.StringType)
@@ -100,15 +103,22 @@ class KpaStream(RESTStream):
         return th.StringType
 
     def get_schema(self, fields) -> dict:
+        fields_dict = []
         properties = []
         for field in fields:
+            # if multiple fields have the same name use title_id for the field name
+            title = field.get("title")
+            if title in fields_dict:
+                title = f'{field.get("title")}_{field.get("id")}'
+            fields_dict.append(title)
+            # add property to schema
             properties.append(
-                th.Property(field.get("title"), self.get_jsonschema_type(field))
+                th.Property(title, self.get_jsonschema_type(field))
             )
         # Return the list as a JSON Schema dictionary object
         property_list = th.PropertiesList(*properties).to_dict()
         return property_list
-    
+
     @backoff.on_exception(
         backoff.expo,
         (RetriableAPIError),
@@ -119,4 +129,3 @@ class KpaStream(RESTStream):
         request = requests.request(http_method, url, json=json)
         self.validate_response(request)
         return request
-
