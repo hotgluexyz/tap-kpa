@@ -67,7 +67,11 @@ class FormsResponseDateStream(KpaStream):
 
     def post_process(self, row, context) -> dict:
         if not self.fields_dict:
-            self.fields_dict = {field["id"]: field["title"] for field in self.fields}
+            for field in self.fields:
+                if field.get("title") not in self.fields_dict.values():
+                    self.fields_dict[field["id"]] = field.get("title")
+                else:
+                    self.fields_dict[field["id"]] = f'{field["title"]}_{field["id"]}'
         processed_row = {}
         row = row.get("latest", {}).get("responses")
         for field_id, value in row.items():
