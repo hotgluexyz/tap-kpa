@@ -76,7 +76,7 @@ class KpaStream(RESTStream):
 
         start_date = self.get_starting_time(context)
         if self.replication_key and self.replication_field and start_date:
-            params[self.replication_field] = start_date.timestamp()
+            params[self.replication_field] = int(start_date.timestamp() * 1000)
         return params
 
     def prepare_request_payload(
@@ -104,7 +104,12 @@ class KpaStream(RESTStream):
 
     def get_schema(self, fields) -> dict:
         fields_dict = []
-        properties = []
+        properties = [
+            th.Property("kpa_id", th.IntegerType),
+            th.Property("kpa_created", th.DateTimeType),
+            th.Property("kpa_updated", th.DateTimeType)
+        ]
+
         for field in fields:
             # if multiple fields have the same name use title_id for the field name
             title = field.get("title")

@@ -38,6 +38,7 @@ class FormsResponseDateStream(KpaStream):
 
     path = "/responses.info"
     key_properties = []
+    ids = set()
     form_id = None
     records_jsonpath = "$.response"
     fields_dict = {}
@@ -73,6 +74,14 @@ class FormsResponseDateStream(KpaStream):
                 else:
                     self.fields_dict[field["id"]] = f'{field["title"]}_{field["id"]}'
         processed_row = {}
+        # Add id to set
+        if row.get("id") in self.ids:
+            return None
+        self.ids.add(row.get("id"))
+
+        processed_row["kpa_id"] = row.get("id")
+        processed_row["kpa_created"] = datetime.fromtimestamp(int(row.get("created")) / 1000.0, tz=pytz.utc)
+        processed_row["kpa_updated"] = datetime.fromtimestamp(int(row.get("updated")) / 1000.0, tz=pytz.utc)
         row = row.get("latest", {}).get("responses")
         for field_id, value in row.items():
             # Retrieve the corresponding field name
