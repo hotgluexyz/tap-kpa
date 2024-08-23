@@ -85,7 +85,7 @@ class FormsResponseDateStream(KpaStream):
         row = row.get("latest", {}).get("responses")
         for field_id, value in row.items():
             # Retrieve the corresponding field name
-            field_name = self.fields_dict.get(field_id)
+            field_name = self.fields_dict.get(field_id).strip()
             field_type = (
                 self.schema["properties"].get(field_name, {}).get("type", [""])[0]
             )
