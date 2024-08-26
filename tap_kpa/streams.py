@@ -85,13 +85,15 @@ class FormsResponseDateStream(KpaStream):
         row = row.get("latest", {}).get("responses")
         for field_id, value in row.items():
             # Retrieve the corresponding field name
-            field_name = self.fields_dict.get(field_id).strip()
+            field_name = self.fields_dict.get(field_id)
+            if field_name is None:
+                continue
+
+            field_name = field_name.strip()
             field_type = (
                 self.schema["properties"].get(field_name, {}).get("type", [""])[0]
             )
-
-            if field_name is None:
-                continue
+            
             # Extract the first key's value from the field_info['value']
             value = value.get("value")
             if value:
