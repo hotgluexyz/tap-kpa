@@ -8,6 +8,7 @@ from tap_kpa.client import KpaStream
 from datetime import datetime
 import pytz
 
+
 class FormsResponseListStream(KpaStream):
     """Define custom stream."""
 
@@ -80,8 +81,12 @@ class FormsResponseDateStream(KpaStream):
         self.ids.add(row.get("id"))
 
         processed_row["kpa_id"] = row.get("id")
-        processed_row["kpa_created"] = datetime.fromtimestamp(int(row.get("created")) / 1000.0, tz=pytz.utc)
-        processed_row["kpa_updated"] = datetime.fromtimestamp(int(row.get("updated")) / 1000.0, tz=pytz.utc)
+        processed_row["kpa_created"] = datetime.fromtimestamp(
+            int(row.get("created")) / 1000.0, tz=pytz.utc
+        )
+        processed_row["kpa_updated"] = datetime.fromtimestamp(
+            int(row.get("updated")) / 1000.0, tz=pytz.utc
+        )
         row = row.get("latest", {}).get("responses")
         for field_id, value in row.items():
             # Retrieve the corresponding field name
@@ -93,7 +98,7 @@ class FormsResponseDateStream(KpaStream):
             field_type = (
                 self.schema["properties"].get(field_name, {}).get("type", [""])[0]
             )
-            
+
             # Extract the first key's value from the field_info['value']
             value = value.get("value")
             if value:
@@ -106,7 +111,9 @@ class FormsResponseDateStream(KpaStream):
                 elif value.get("attachments"):
                     processed_row[field_name] = value["attachments"]
                 elif value.get("utc_time"):
-                    processed_row[field_name] = datetime.fromtimestamp(value["utc_time"] / 1000.0, tz=pytz.utc)
+                    processed_row[field_name] = datetime.fromtimestamp(
+                        value["utc_time"] / 1000.0, tz=pytz.utc
+                    )
                 else:
                     first_key = next(iter(value))
                     processed_row[field_name] = value[first_key]
@@ -115,4 +122,22 @@ class FormsResponseDateStream(KpaStream):
     def prepare_request_payload(self, context, next_page_token):
         payload = super().prepare_request_payload(context, next_page_token)
         payload.update({"response_id": context.get("response_id")})
+        return payload
+
+
+class RolesListStream(KpaStream):
+    """Define custom stream."""
+
+    name = "roles_list_stream"
+    path = "/roles.list"
+    records_jsonpath = "$.roles[*]"
+    rest_method = "POST"
+
+    schema = th.PropertiesList(
+        th.Property("id", th.StringType),
+        th.Property("name", th.StringType),
+    ).to_dict()
+
+    def prepare_request_payload(self, context, next_page_token):
+        payload = super().prepare_request_payload(context, next_page_token)
         return payload
