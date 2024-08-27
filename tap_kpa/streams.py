@@ -138,9 +138,6 @@ class RolesListStream(KpaStream):
         th.Property("name", th.StringType),
     ).to_dict()
 
-    def prepare_request_payload(self, context, next_page_token):
-        payload = super().prepare_request_payload(context, next_page_token)
-        return payload
 
 class UsersListStream(KpaStream):
     """Define custom stream."""
@@ -184,6 +181,17 @@ class UsersListStream(KpaStream):
         th.Property("id", th.StringType),
     ).to_dict()
 
-    def prepare_request_payload(self, context, next_page_token):
-        payload = super().prepare_request_payload(context, next_page_token)
-        return payload
+class LinesOfBusinessListStream(KpaStream):
+    """Define custom stream."""
+
+    name = "lines_of_business"
+    path = "/linesofbusiness.list"
+    records_jsonpath = "$.linesofbusiness[*]"
+    rest_method = "POST"
+
+    schema = th.PropertiesList(
+        th.Property("name", th.StringType),
+        th.Property("code", th.StringType),
+        th.Property("created", th.IntegerType),
+        th.Property("id", th.StringType),
+    ).to_dict()

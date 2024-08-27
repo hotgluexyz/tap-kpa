@@ -12,10 +12,10 @@ from tap_kpa.streams import (
     FormsResponseDateStream,
     FormsResponseListStream,
     RolesListStream,
-    UsersListStream
+    UsersListStream, LinesOfBusinessListStream
 )
 
-STREAM_TYPES = [RolesListStream, UsersListStream]
+STREAM_TYPES = [RolesListStream, UsersListStream, LinesOfBusinessListStream]
 
 
 class TapKpa(Tap):
