@@ -107,7 +107,7 @@ class KpaStream(RESTStream):
         properties = [
             th.Property("kpa_id", th.IntegerType),
             th.Property("kpa_created", th.DateTimeType),
-            th.Property("kpa_updated", th.DateTimeType)
+            th.Property("kpa_updated", th.DateTimeType),
         ]
 
         for field in fields:
@@ -117,9 +117,7 @@ class KpaStream(RESTStream):
                 title = f'{field.get("title")}_{field.get("id")}'
             fields_dict.append(title)
             # add property to schema
-            properties.append(
-                th.Property(title, self.get_jsonschema_type(field))
-            )
+            properties.append(th.Property(title, self.get_jsonschema_type(field)))
         # Return the list as a JSON Schema dictionary object
         property_list = th.PropertiesList(*properties).to_dict()
         return property_list

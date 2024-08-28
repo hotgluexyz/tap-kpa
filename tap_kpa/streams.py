@@ -8,6 +8,7 @@ from tap_kpa.client import KpaStream
 from datetime import datetime
 import pytz
 
+
 class FormsResponseListStream(KpaStream):
     """Define custom stream."""
 
@@ -80,8 +81,12 @@ class FormsResponseDateStream(KpaStream):
         self.ids.add(row.get("id"))
 
         processed_row["kpa_id"] = row.get("id")
-        processed_row["kpa_created"] = datetime.fromtimestamp(int(row.get("created")) / 1000.0, tz=pytz.utc)
-        processed_row["kpa_updated"] = datetime.fromtimestamp(int(row.get("updated")) / 1000.0, tz=pytz.utc)
+        processed_row["kpa_created"] = datetime.fromtimestamp(
+            int(row.get("created")) / 1000.0, tz=pytz.utc
+        )
+        processed_row["kpa_updated"] = datetime.fromtimestamp(
+            int(row.get("updated")) / 1000.0, tz=pytz.utc
+        )
         row = row.get("latest", {}).get("responses")
         for field_id, value in row.items():
             # Retrieve the corresponding field name
@@ -93,7 +98,7 @@ class FormsResponseDateStream(KpaStream):
             field_type = (
                 self.schema["properties"].get(field_name, {}).get("type", [""])[0]
             )
-            
+
             # Extract the first key's value from the field_info['value']
             value = value.get("value")
             if value:
@@ -106,7 +111,9 @@ class FormsResponseDateStream(KpaStream):
                 elif value.get("attachments"):
                     processed_row[field_name] = value["attachments"]
                 elif value.get("utc_time"):
-                    processed_row[field_name] = datetime.fromtimestamp(value["utc_time"] / 1000.0, tz=pytz.utc)
+                    processed_row[field_name] = datetime.fromtimestamp(
+                        value["utc_time"] / 1000.0, tz=pytz.utc
+                    )
                 else:
                     first_key = next(iter(value))
                     processed_row[field_name] = value[first_key]
@@ -116,3 +123,75 @@ class FormsResponseDateStream(KpaStream):
         payload = super().prepare_request_payload(context, next_page_token)
         payload.update({"response_id": context.get("response_id")})
         return payload
+
+
+class RolesListStream(KpaStream):
+    """Define custom stream."""
+
+    name = "roles"
+    path = "/roles.list"
+    records_jsonpath = "$.roles[*]"
+    rest_method = "POST"
+
+    schema = th.PropertiesList(
+        th.Property("id", th.StringType),
+        th.Property("name", th.StringType),
+    ).to_dict()
+
+
+class UsersListStream(KpaStream):
+    """Define custom stream."""
+
+    name = "users"
+    path = "/users.list"
+    records_jsonpath = "$.users[*]"
+    rest_method = "POST"
+
+    schema = th.PropertiesList(
+        th.Property("created", th.IntegerType),
+        th.Property("registered_on", th.IntegerType),
+        th.Property("supervisor_id", th.StringType),
+        th.Property("mentor_id", th.StringType),
+        th.Property("hse_id", th.StringType),
+        th.Property("manager_id", th.StringType),
+        th.Property("clients_id", th.ArrayType(th.StringType)),
+        th.Property("firstname", th.StringType),
+        th.Property("lastname", th.StringType),
+        th.Property("employeeNumber", th.StringType),
+        th.Property("email", th.EmailType),
+        th.Property("username", th.StringType),
+        th.Property("cellPhone", th.StringType),
+        th.Property("hireDate", th.IntegerType),
+        th.Property("sseDate", th.IntegerType),
+        th.Property("terminationDate", th.IntegerType),
+        th.Property("emergencyContact", th.StringType),
+        th.Property("isDriver", th.BooleanType),
+        th.Property("isRegulatedDriver", th.BooleanType),
+        th.Property("role_id", th.StringType),
+        th.Property("metavalues", th.ObjectType(additional_properties=th.CustomType({"type": ["object", "string"]}))),
+        th.Property("creator_id", th.ObjectType(
+                th.Property("firstname", th.StringType),
+                th.Property("lastname", th.StringType),
+                th.Property("id", th.StringType),
+            )),
+        th.Property("fieldOffice_id", th.ArrayType(th.StringType)),
+        th.Property("lineOfBusiness_id", th.ArrayType(th.StringType)),
+        th.Property("lastWebAccess", th.IntegerType),
+        th.Property("lastMobileAccess", th.IntegerType),
+        th.Property("id", th.StringType),
+    ).to_dict()
+
+class LinesOfBusinessListStream(KpaStream):
+    """Define custom stream."""
+
+    name = "lines_of_business"
+    path = "/linesofbusiness.list"
+    records_jsonpath = "$.linesofbusiness[*]"
+    rest_method = "POST"
+
+    schema = th.PropertiesList(
+        th.Property("name", th.StringType),
+        th.Property("code", th.StringType),
+        th.Property("created", th.IntegerType),
+        th.Property("id", th.StringType),
+    ).to_dict()

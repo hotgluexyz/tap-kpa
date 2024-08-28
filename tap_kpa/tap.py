@@ -1,6 +1,6 @@
 """Kpa tap class."""
 
-from typing import List
+from typing import Generator, List
 
 import traceback
 import re
@@ -8,9 +8,14 @@ import requests
 from singer_sdk import Stream, Tap
 from singer_sdk import typing as th
 
-from tap_kpa.streams import FormsResponseDateStream, FormsResponseListStream
+from tap_kpa.streams import (
+    FormsResponseDateStream,
+    FormsResponseListStream,
+    RolesListStream,
+    UsersListStream, LinesOfBusinessListStream
+)
 
-STREAM_TYPES = []
+STREAM_TYPES = [RolesListStream, UsersListStream, LinesOfBusinessListStream]
 
 
 class TapKpa(Tap):
@@ -32,7 +37,7 @@ class TapKpa(Tap):
         ),
     ).to_dict()
 
-    def discover_streams(self) -> List[Stream]:
+    def discover_forms_streams(self) -> Generator[Stream, Stream, Exception]:
         """Return a list of discovered streams."""
         # create a stream per form
         forms_url = "https://api.kpaehs.com/v1/forms.list"
@@ -44,8 +49,8 @@ class TapKpa(Tap):
                 form_id = form.get("id")
                 # Clean up form name, no spaces or non alphanumeric chars
                 name = form.get("name").replace(" ", "_")
-                pattern = re.compile('[^\w]+')
-                name = pattern.sub('', name)
+                pattern = re.compile("[^\w]+")
+                name = pattern.sub("", name)
 
                 # create parent stream
                 parent_stream_name = f"{name}_responses_list"
@@ -74,6 +79,11 @@ class TapKpa(Tap):
                 f"Request to get forms has failed with status code {forms.status_code} and response {forms.text}"
             )
 
+    def discover_streams(self) -> List[Stream]:
+        return [stream_class(tap=self) for stream_class in STREAM_TYPES] + [
+            form for form in self.discover_forms_streams()
+        ]
+
     @property
     def catalog(self):
         """Get the tap's working catalog.
@@ -98,7 +108,11 @@ class TapKpa(Tap):
         if is_discover:
             # filter out all the parent streams, we want to hide from end user
             catalog = {
-                "streams": [x for x in catalog["streams"] if not x["stream"].endswith("_responses_list")]
+                "streams": [
+                    x
+                    for x in catalog["streams"]
+                    if not x["stream"].endswith("_responses_list")
+                ]
             }
 
         return catalog
