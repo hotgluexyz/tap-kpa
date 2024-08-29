@@ -56,7 +56,9 @@ class KpaStream(RESTStream):
         if self.pagination:
             previous_token = previous_token or 1
             next_page_token = previous_token + 1
-            if response.json().get("paging", {}).get("last_page", 0) >= next_page_token:
+            paging = response.json().get("paging", {})
+            self.logger.info(f"Got paging response={paging}, prev_page={previous_token}, next_page={next_page_token}")
+            if paging.get("last_page", 0) >= next_page_token:
                 return next_page_token
 
     def get_starting_time(self, context):
@@ -77,6 +79,8 @@ class KpaStream(RESTStream):
         start_date = self.get_starting_time(context)
         if self.replication_key and self.replication_field and start_date:
             params[self.replication_field] = int(start_date.timestamp() * 1000)
+
+        self.logger.info(f"Querying with params={params}")
         return params
 
     def prepare_request_payload(
