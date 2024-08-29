@@ -44,7 +44,6 @@ class FormsResponseDateStream(KpaStream):
     records_jsonpath = "$.response"
     fields_dict = {}
     rest_method = "POST"
-    pagination = False
 
     def get_fields(self):
         url = f"{self.url_base}/forms.info"

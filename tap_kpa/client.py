@@ -18,7 +18,6 @@ class KpaStream(RESTStream):
     records_jsonpath = "$[*]"
     next_page_token_jsonpath = "$.next_page"
     replication_field = None
-    pagination = True
 
     @property
     def http_headers(self) -> dict:
@@ -53,13 +52,12 @@ class KpaStream(RESTStream):
         self, response: requests.Response, previous_token: Optional[Any]
     ) -> Optional[Any]:
         """Return a token for identifying next page or None if no more pages."""
-        if self.pagination:
-            previous_token = previous_token or 1
-            next_page_token = previous_token + 1
-            paging = response.json().get("paging", {})
-            self.logger.info(f"Got paging response={paging}, prev_page={previous_token}, next_page={next_page_token}")
-            if paging.get("last_page", 0) >= next_page_token:
-                return next_page_token
+        previous_token = previous_token or 1
+        next_page_token = previous_token + 1
+        paging = response.json().get("paging", {})
+        self.logger.info(f"Got paging response={paging}, prev_page={previous_token}, next_page={next_page_token}")
+        if paging.get("last_page", 0) >= next_page_token:
+            return next_page_token
 
     def get_starting_time(self, context):
         start_date = self.config.get("start_date")
