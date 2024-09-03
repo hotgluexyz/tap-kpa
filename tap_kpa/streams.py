@@ -9,6 +9,7 @@ from datetime import datetime
 import pytz
 
 
+# https://api.kpaehs.com/docs/method/responses.list
 class FormsResponseListStream(KpaStream):
     """Define custom stream."""
 
@@ -31,6 +32,8 @@ class FormsResponseListStream(KpaStream):
     def prepare_request_payload(self, context, next_page_token):
         payload = super().prepare_request_payload(context, next_page_token)
         payload.update({"form_id": self.form_id})
+        if next_page_token:
+            payload["page"] = next_page_token
         return payload
 
 
