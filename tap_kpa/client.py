@@ -56,6 +56,8 @@ class KpaStream(RESTStream):
         next_page_token = previous_token + 1
         paging = response.json().get("paging", {})
         self.logger.info(f"Got paging response={paging}, prev_page={previous_token}, next_page={next_page_token}")
+        self.logger.info(f"Response json: {response.json()}")
+        self.logger.info(f"Response text: {response.text}")
         if paging.get("last_page", 0) >= next_page_token:
             return next_page_token
 
