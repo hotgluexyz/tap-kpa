@@ -114,9 +114,9 @@ class KpaStream(RESTStream):
 
         for field in fields:
             # if multiple fields have the same name use title_id for the field name
-            title = field.get("title")
+            title = field.get("title", "").strip()
             if title in fields_dict:
-                title = f'{field.get("title")}_{field.get("id")}'
+                title = f'{field.get("title", "").strip()}_{field.get("id")}'
             fields_dict.append(title)
             # add property to schema
             properties.append(th.Property(title, self.get_jsonschema_type(field)))

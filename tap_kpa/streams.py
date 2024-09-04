@@ -73,9 +73,9 @@ class FormsResponseDateStream(KpaStream):
         if not self.fields_dict:
             for field in self.fields:
                 if field.get("title") not in self.fields_dict.values():
-                    self.fields_dict[field["id"]] = field.get("title")
+                    self.fields_dict[field["id"]] = field.get("title","").strip()
                 else:
-                    self.fields_dict[field["id"]] = f'{field["title"]}_{field["id"]}'
+                    self.fields_dict[field["id"]] = f'{field.get("title","").strip()}_{field["id"]}'
         processed_row = {}
         # Add id to set
         if row.get("id") in self.ids:
