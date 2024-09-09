@@ -48,6 +48,10 @@ class FormsResponseDateStream(KpaStream):
     fields_dict = {}
     rest_method = "POST"
 
+    def __init__(self, *args, **kwargs):
+        self.fields_dict = dict()
+        return super().__init__(*args, **kwargs)
+
     def get_fields(self):
         url = f"{self.url_base}/forms.info"
         data = super().prepare_request_payload({}, None)
