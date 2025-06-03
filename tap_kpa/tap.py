@@ -1,12 +1,15 @@
 """Kpa tap class."""
 
 from typing import Generator, List
+from time import sleep
 
 import traceback
 import re
 import requests
+import backoff
 from singer_sdk import Stream, Tap
 from singer_sdk import typing as th
+from singer_sdk.exceptions import FatalAPIError, RetriableAPIError
 
 from tap_kpa.streams import (
     FormsResponseDateStream,
@@ -37,12 +40,40 @@ class TapKpa(Tap):
         ),
     ).to_dict()
 
+    @backoff.on_exception(
+        backoff.expo,
+        (RetriableAPIError),
+        max_tries=5,
+        factor=2,
+    )
+    def _make_request(self, url: str, data: dict) -> requests.Response:
+        """Make API request with backoff strategy."""
+        
+        response = requests.post(url, json=data)
+        error = f"Error status code: {response.status_code}, response: {response.text}, response url: {response.url}"
+        
+        if (
+            response.status_code == 200
+            and response.json().get("error") == "rate_limit_exceeded"
+        ):
+            self.logger.info("Rate limit exceeded, sleeping for 120 seconds...")
+            sleep(120)
+            raise RetriableAPIError(error, response)
+        if response.status_code in [429] or 500 <= response.status_code < 600:
+            raise RetriableAPIError(error, response)
+        elif 400 <= response.status_code < 500 or (
+            response.status_code == 200 and response.json().get("ok") == False
+        ):
+            raise FatalAPIError(error)
+        
+        return response
+
     def discover_forms_streams(self) -> Generator[Stream, Stream, Exception]:
         """Return a list of discovered streams."""
         # create a stream per form
         forms_url = "https://api.kpaehs.com/v1/forms.list"
         data = {"token": self.config.get("access_token")}
-        forms = requests.post(forms_url, json=data)
+        forms = self._make_request(forms_url, data)
         if forms.status_code == 200 and forms.json().get("ok"):
             forms = forms.json().get("forms", [])
             for form in forms:
