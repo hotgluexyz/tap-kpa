@@ -124,7 +124,12 @@ class FormsResponseDateStream(KpaStream):
                     first_key = next(iter(value))
                     raw = value[first_key]
                     if field_type == "number":
-                        raw = float(raw)
+                        if raw is None:
+                            continue
+                        try:
+                            raw = float(raw)
+                        except (TypeError, ValueError):
+                            continue
                     processed_row[field_name] = raw
         return processed_row
 
