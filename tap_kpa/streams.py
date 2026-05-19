@@ -122,7 +122,10 @@ class FormsResponseDateStream(KpaStream):
                     )
                 else:
                     first_key = next(iter(value))
-                    processed_row[field_name] = value[first_key]
+                    raw = value[first_key]
+                    if field_type == "number":
+                        raw = float(raw)
+                    processed_row[field_name] = raw
         return processed_row
 
     def prepare_request_payload(self, context, next_page_token):

@@ -102,6 +102,10 @@ class KpaStream(RESTStream):
             return th.IntegerType
         if field.get("type") in ["sketch", "attachments"]:
             return th.ArrayType(th.CustomType({"type": ["object", "string"]}))
+        if field.get("type") == "number" or settings.get("inputtype") in [
+            "number", "currency", "decimal"
+        ]:
+            return th.NumberType
         return th.StringType
 
     def get_schema(self, fields) -> dict:
