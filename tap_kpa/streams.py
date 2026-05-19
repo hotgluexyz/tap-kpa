@@ -130,6 +130,7 @@ class FormsResponseDateStream(KpaStream):
                         try:
                             raw = float(raw)
                         except (TypeError, ValueError):
+                            processed_row[field_name] = None
                             continue
                     processed_row[field_name] = raw
         return processed_row
