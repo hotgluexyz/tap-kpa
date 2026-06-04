@@ -132,6 +132,12 @@ class FormsResponseDateStream(KpaStream):
                         except (TypeError, ValueError):
                             processed_row[field_name] = None
                             continue
+                    elif (
+                        field_type == "string"
+                        and raw is not None
+                        and not isinstance(raw, (str, list, dict))
+                    ):
+                        raw = str(raw)
                     processed_row[field_name] = raw
         return processed_row
 
