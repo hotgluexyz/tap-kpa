@@ -96,7 +96,11 @@ class KpaStream(RESTStream):
             return th.BooleanType
         if settings.get("style") == "list" and settings.get("multiple"):
             return th.ArrayType(th.StringType)
-        if settings.get("decimals"):
+        if (
+            "decimals" in settings
+            or field.get("type") == "number"
+            or settings.get("inputtype") in ["number", "currency", "decimal"]
+        ):
             return th.NumberType
         if field.get("type") == "datetime":
             return th.DateTimeType
