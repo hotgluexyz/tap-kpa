@@ -96,18 +96,18 @@ class KpaStream(RESTStream):
             return th.BooleanType
         if settings.get("style") == "list" and settings.get("multiple"):
             return th.ArrayType(th.StringType)
-        if (
-            "decimals" in settings
-            or field.get("type") == "number"
-            or settings.get("inputtype") in ["number", "currency", "decimal"]
-        ):
-            return th.NumberType
         if field.get("type") == "datetime":
             return th.DateTimeType
         if field.get("type") in ["counter", "subreport"]:
             return th.IntegerType
         if field.get("type") in ["sketch", "attachments"]:
             return th.ArrayType(th.CustomType({"type": ["object", "string"]}))
+        if (
+            "decimals" in settings
+            or field.get("type") == "number"
+            or settings.get("inputtype") in ["number", "currency", "decimal"]
+        ):
+            return th.NumberType
         return th.StringType
 
     def get_schema(self, fields) -> dict:
