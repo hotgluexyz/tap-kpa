@@ -98,7 +98,7 @@ class KpaStream(RESTStream):
             return th.ArrayType(th.StringType)
         if field.get("type") == "datetime":
             return th.DateTimeType
-        if field.get("type") == "counter":
+        if field.get("type") in ["counter", "subreport"]:
             return th.IntegerType
         if field.get("type") in ["sketch", "attachments"]:
             return th.ArrayType(th.CustomType({"type": ["object", "string"]}))
