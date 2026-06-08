@@ -103,8 +103,8 @@ class KpaStream(RESTStream):
         if field.get("type") in ["sketch", "attachments"]:
             return th.ArrayType(th.CustomType({"type": ["object", "string"]}))
         if (
-            "decimals" in settings
-            or field.get("type") == "number"
+            field.get("type") in ["number", "calculation"]
+            or "decimals" in settings
             or settings.get("inputtype") in ["number", "currency", "decimal"]
         ):
             return th.NumberType
