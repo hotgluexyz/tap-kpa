@@ -132,7 +132,7 @@ class KpaStream(RESTStream):
 
     @backoff.on_exception(
         backoff.expo,
-        (RetriableAPIError),
+        (RetriableAPIError, requests.exceptions.ConnectionError),
         max_tries=5,
         factor=2,
     )
