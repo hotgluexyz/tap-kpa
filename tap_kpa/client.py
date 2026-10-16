@@ -28,6 +28,21 @@ class KpaStream(RESTStream):
             headers["User-Agent"] = self.config.get("user_agent")
         return headers
 
+    def request_decorator(self, func):
+        """Retry connection errors alongside SDK defaults to prevent dropped 
+        connections from crashing the record-sync paging loop."""
+        decorator = backoff.on_exception(
+            self.backoff_wait_generator,
+            (
+                RetriableAPIError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectionError,
+            ),
+            max_tries=self.backoff_max_tries,
+            on_backoff=self.backoff_handler,
+        )(func)
+        return decorator
+
     def validate_response(self, response: requests.Response) -> None:
         error = f"Error status code: {response.status_code}, response: {response.text}, response url: {response.url}"
         if (
